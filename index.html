@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Solicitação de EPI</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f4f4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .login-container {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: red;
+      color: white;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    #erro {
+      color: red;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-container">
+  <h2>Login - Solicitação de EPI</h2>
+  <input type="text" id="usuario" placeholder="Usuário">
+  <input type="password" id="senha" placeholder="Senha">
+  <button onclick="login()">Entrar</button>
+  <p id="erro"></p>
+</div>
+
+<script>
+  function login() {
+    const user = document.getElementById('usuario').value;
+    const pass = document.getElementById('senha').value;
+
+    const userPadrao = "usuario";
+    const senhaPadrao = "senha123";
+
+    if (user === userPadrao && pass === senhaPadrao) {
+      window.location.href = "solicitacao.html";
+    } else {
+      document.getElementById('erro').innerText = "Usuário ou senha incorretos.";
+    }
+  }
+</script>
+
+</body>
+</html>

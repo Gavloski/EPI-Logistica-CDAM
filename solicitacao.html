@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Solicitação de EPI</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      max-width: 1200px;
+      margin: auto;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: red;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+
+    .btn-editar {
+      background-color: #007bff;
+    }
+
+    .btn-excluir {
+      background-color: #dc3545;
+    }
+
+    .btn-exportar {
+      background-color: green;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 40px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background: #f0f0f0;
+    }
+
+    @media (max-width: 768px) {
+      .form-row {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Formulário de Solicitação de EPI</h2>
+
+  <input type="hidden" id="indiceEdicao" value="-1">
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Nome:</label>
+      <input type="text" id="nome" required>
+    </div>
+
+    <div class="form-group">
+      <label>Setor:</label>
+      <input type="text" id="setor" required>
+    </div>
+
+    <div class="form-group">
+      <label>Tipo de EPI:</label>
+      <select id="epi">
+        <option value="Botina de Segurança">Botina de Segurança</option>
+        <option value="Cinta Ergonômica">Cinta Ergonômica</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Tamanho:</label>
+      <input type="text" id="tamanho" placeholder="Ex: 38, M, G, etc.">
+    </div>
+
+    <div class="form-group">
+      <label>Quantidade:</label>
+      <input type="number" id="quantidade" min="1" required>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Observações:</label>
+    <textarea id="obs" rows="4"></textarea>
+  </div>
+
+  <button onclick="enviar()">Salvar Solicitação</button>
+  <button class="btn-exportar" onclick="exportar()">Exportar para Excel</button>
+
+  <h2>Solicitações Registradas</h2>
+  <table id="tabela">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Setor</th>
+        <th>EPI</th>
+        <th>Tamanho</th>
+        <th>Quantidade</th>
+        <th>Observações</th>
+        <th>Data</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+  const tabela = document.querySelector("#tabela tbody");
+
+  function carregarTabela() {
+    const dados = JSON.parse(localStorage.getItem("solicitacoes")) || [];
+    tabela.innerHTML = "";
+    dados.forEach((item, i) => {
+      const row = tabela.insertRow();
+      row.innerHTML = `
+        <td>${item.nome}</td>
+        <td>${item.setor}</td>
+        <td>${item.epi}</td>
+        <td>${item.tamanho}</td>
+        <td>${item.quantidade}</td>
+        <td>${item.obs}</td>
+        <td>${item.data}</td>
+        <td>
+          <button class="btn-editar" onclick="editar(${i})">Editar</button>
+          <button class="btn-excluir" onclick="excluir(${i})">Excluir</button>
+        </td>
+      `;
+    });
+  }
+
+  function enviar() {
+    const nome = document.getElementById("nome").value.trim();
+    const setor = document.getElementById("setor").value.trim();
+    const epi = document.getElementById("epi").value;
+    const tamanho = document.getElementById("tamanho").value.trim();
+    const quantidade = document.getElementById("quantidade").value;
+    const obs = document.getElementById("obs").value.trim();
+    const indice = document.getElementById("indiceEdicao").value;
+    const data = new Date().toLocaleString("pt-BR");
+
+    if (!nome || !setor || !tamanho || quantidade <= 0) {
+      alert("Preencha todos os campos obrigatórios.");
+      return;
+    }
+
+    let dados = JSON.parse(localStorage.getItem("solicitacoes")) || [];
+    const novaSolicitacao = { nome, setor, epi, tamanho, quantidade, obs, data };
+
+    if (indice === "-1") {
+      dados.push(novaSolicitacao);
+    } else {
+      novaSolicitacao.data = dados[indice].data;
+      dados[indice] = novaSolicitacao;
+      document.getElementById("indiceEdicao").value = -1;
+    }
+
+    localStorage.setItem("solicitacoes", JSON.stringify(dados));
+    limparFormulario();
+    carregarTabela();
+    alert("Solicitação salva com sucesso.");
+  }
+
+  function editar(i) {
+    const dados = JSON.parse(localStorage.getItem("solicitacoes")) || [];
+    const item = dados[i];
+
+    document.getElementById("nome").value = item.nome;
+    document.getElementById("setor").value = item.setor;
+    document.getElementById("epi").value = item.epi;
+    document.getElementById("tamanho").value = item.tamanho;
+    document.getElementById("quantidade").value = item.quantidade;
+    document.getElementById("obs").value = item.obs;
+    document.getElementById("indiceEdicao").value = i;
+  }
+
+  function excluir(i) {
+    if (!confirm("Deseja realmente excluir esta solicitação?")) return;
+    let dados = JSON.parse(localStorage.getItem("solicitacoes")) || [];
+    dados.splice(i, 1);
+    localStorage.setItem("solicitacoes", JSON.stringify(dados));
+    carregarTabela();
+  }
+
+  function exportar() {
+    const dados = JSON.parse(localStorage.getItem("solicitacoes")) || [];
+    if (dados.length === 0) {
+      alert("Nenhuma solicitação registrada.");
+      return;
+    }
+
+    const planilha = dados.map(item => ({
+      Nome: item.nome,
+      Setor: item.setor,
+      EPI: item.epi,
+      Tamanho: item.tamanho,
+      Quantidade: item.quantidade,
+      Observações: item.obs,
+      Data: item.data
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(planilha);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Solicitações");
+
+    XLSX.writeFile(wb, "solicitacoes_epi.xlsx");
+  }
+
+  function limparFormulario() {
+    document.getElementById("nome").value = "";
+    document.getElementById("setor").value = "";
+    document.getElementById("epi").value = "Botina de Segurança";
+    document.getElementById("tamanho").value = "";
+    document.getElementById("quantidade").value = "";
+    document.getElementById("obs").value = "";
+  }
+
+  carregarTabela();
+</script>
+
+</body>
+</html>
